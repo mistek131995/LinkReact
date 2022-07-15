@@ -5,10 +5,12 @@ import { Key, Person, Eyeglasses } from 'react-bootstrap-icons';
 import "./RegisterPage.css";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import md5 from 'md5';
+
 
 export const RegisterPage = () =>{
     const {register, watch, handleSubmit, formState: {errors, isValid}} = useForm({mode: "onBlur"});
-    const [captchaImg, setCaptcha] = useState(null);
+    const [captcha, setCaptcha] = useState(null);
 
     useEffect(() => {
         fetch("https://localhost:7091/Helper/Captcha?location=register", 
@@ -20,7 +22,6 @@ export const RegisterPage = () =>{
         .then((respone) => respone.json())
         .then(respone => setCaptcha(respone))
     }, [])
-
 
     const test = (event) => {
         
@@ -109,7 +110,7 @@ export const RegisterPage = () =>{
                         <div className="mb-4">{errors?.secretword && <p>{errors?.secretword?.message || "Произошла непредвиденная ошибка"}</p>}</div>
 
                         <InputGroup>
-                            {(captchaImg != null) ? <img src={"data:image/png;base64," + captchaImg} alt="Код"/> : <></>}
+                            {(captcha != null) ? <img src={"data:image/png;base64," + captcha.codeImg} alt="Код"/> : <></>}
                         </InputGroup>
 
                         <InputGroup>
@@ -120,11 +121,7 @@ export const RegisterPage = () =>{
                                 {
                                     required: {value: true, message: "Введите каптчу."},
                                     minLength: 6,
-                                    validate: (value) => {
-                                        fetch("https://localhost:7091/Helper/CheckCaptcha?location=register&code=" + value, {credentials: "same-origin"})
-                                        .then(respone => respone.json())
-                                        .then(respone => console.log(respone))
-                                    }
+                                    validate: (value) => md5(value) === captcha.codeMD5 || "Неверный код"
                                 }
                             )}/>
                         </InputGroup>
